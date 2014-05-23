@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'redis'
 require 'csv'
 
 def get_connection
@@ -22,31 +23,16 @@ def find_articles
   articles
 end
 
-def save_article(url, title, description)
-  article = { url: url, title: title, description: description }
+def save_article(url, title, description, name)
+  article = { url: url, title: title, description: description, name: name}
 
   redis = get_connection
   redis.rpush("slacker:articles", article.to_json)
 end
 
-def load_list
-  articles =[]
-  article = nil
-  CSV.foreach('articles.csv', headers: true) do |row|
-    article = {
-      name: row ["name"],
-      title: row["title"],
-      url: row["url"],
-      description: row["description"]
-    }
-  articles << article
-  end
-  articles
-end
-
 def article_exists(params)
   errors = []
-  articles = load_list
+  articles = find_articles
   articles.each do |article|
     if article[:url] == params
       errors << 1
@@ -57,7 +43,7 @@ end
 
 
 get '/' do
-@articles = load_list
+@articles = find_articles
 
 erb :home
 end
@@ -76,10 +62,8 @@ post '/new' do
 
     erb :new
   else
-    article = [params[:name],params[:new_article],params[:url], params[:description]]
-    CSV.open('articles.csv', 'a') do |csv|
-      csv << article
-    end
+    save_article([params[:name],params[:new_article],params[:url], params[:description], params[:name]])
+
     redirect '/'
   end
 end
