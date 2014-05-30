@@ -1,41 +1,8 @@
 require 'sinatra'
-require 'pg'
-
-def db_connection
-  begin
-    connection = PG.connect(dbname: 'slacker_news')
-
-    yield(connection)
-
-  ensure
-    connection.close
-  end
-end
-
-
-
-
-def article_exists(params)
-  errors = []
-  articles_pg = db_connection do |conn|
-  conn.exec('SELECT * FROM articles;')
-    end
-  articles = articles_pg.to_a
-  articles.each do |article|
-    if article['url'] == params
-      errors << 1
-    end
-  end
-  errors
-end
-
+require_relative 'method_list'
 
 get '/' do
-
-@articles = db_connection do |conn|
-  conn.exec('SELECT * FROM articles;')
-    end
-@articles = @articles.to_a
+@articles = all_articles
 erb :home
 end
 
@@ -57,10 +24,8 @@ post '/new' do
     headline = params[:new_article]
     url = params[:url]
     description = params[:description]
-    insert = "INSERT INTO articles (name, headline, url, description) VALUES ($1, $2, $3, $4);"
-    articles_pg = db_connection do |conn|
-  conn.exec_params(insert, [name, headline, url, description])
-    end
+      add_article(name, headline, url, description)
+
     redirect '/'
   end
 end
@@ -69,19 +34,13 @@ post '/comments/:id' do
   name = params[:name]
   content = params[:comments]
   article_id = params[:id]
-  insert = "INSERT INTO comments (name, content, article_id, time_created) VALUES ($1, $2, $3, now());"
-    articles_pg = db_connection do |conn|
-  conn.exec_params(insert, [name, content, article_id])
-    end
+    add_comment(name, content, article_id)
+
     redirect '/'
   end
 
 get '/articles/:id/comments' do
-
-    @articles = db_connection do |conn|
-  conn.exec("SELECT articles.name, articles.id, articles.headline, articles.url, articles.description, comments.content,
-    comments.name AS commenter FROM articles JOIN comments ON comments.article_id = articles.id WHERE articles.id = #{params[:id]};")
-    end
-  @articles = @articles.to_a
+  id = params[:id]
+    @articles = article_and_comments(id)
   erb :comments
 end

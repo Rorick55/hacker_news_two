@@ -9,7 +9,6 @@
     <input type="url" required pattern="http://.+" required title="requires http://"  id="new_article" name="url" size="40" value="<%= @url %>"/>
     <label for="new_article">Description:</label>
     <input pattern=".{20,}" required title="20 character minimum" type="text" id="new_article" name="description" size = "40" maxlength="140" value="<%= params[:description] %>"></textarea>
-
     <input type="submit" />
   </form>
 </div>

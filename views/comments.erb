@@ -2,16 +2,26 @@
 <ol class = "links">
   <% @articles.each do |article| %>
     <li>
-      <p><img class = "arrow" src = "/grayarrow.gif">
-      <a href=<%="#{article['url']}" %>><%="#{article['headline']}"%></a></p>
-      <p><%="#{article['description']}" %>
-      <p>posted by: <%="#{article['name']}" %> | <a href="/articles/<%= "#{article['id']}" %>/comments">comments</a></p>
+      <p>
+        <img class = "arrow" src = "/grayarrow.gif">
+        <a href="<%="#{article['url']}" %>"> <%="#{article['headline']}"%> </a>
+      </p>
+      <p>
+        <%="#{article['description']}" %>
+      </p>
+      <p>
+        posted by: <%="#{article['name']}" %> | <a href="/articles/<%= "#{article['id']}" %>/comments">comments</a>
+      </p>
       <p></p>
         <ul class= "comments">
           <% @articles.each do |comment| %>
             <li>
-              <p><%= comment['content'] %></p>
-              <p>posted by: <%= comment['commenter']%></p>
+              <p>
+                <%= comment['content'] %>
+              </p>
+              <p>
+                posted by: <%= comment['commenter']%>
+              </p>
             </li>
           <%end%>
         </ul>
@@ -20,10 +30,10 @@
   <% end %>
 </ol>
 <form action="/comments/<%= params[:id]%>" method="post">
-    <label for="new_comment">Name:</label><br />
-    <input type="text" id="new_comment" name="name" value="<%= params[:name] %>" size="40" required/><br />
-    <label for="comments">Comment:</label><br />
-    <textarea id="comments" name="comments" rows="10" cols="50" required></textarea><br />
-    <input type="submit" value="Submit" />
-    </form>
+  <label for="new_comment">Name:</label><br />
+  <input type="text" id="new_comment" name="name" value="<%= params[:name] %>" size="40" required/><br />
+  <label for="comments">Comment:</label><br />
+  <textarea id="comments" name="comments" rows="10" cols="50" required></textarea><br />
+  <input type="submit" value="Submit" />
+</form>
 
