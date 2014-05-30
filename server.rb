@@ -17,7 +17,9 @@ end
 
 def article_exists(params)
   errors = []
-  articles_pg = db_connection("SELECT * FROM articles;")
+  articles_pg = db_connection do |conn|
+  conn.exec('SELECT * FROM articles;')
+    end
   articles = articles_pg.to_a
   articles.each do |article|
     if article['url'] == params
@@ -30,7 +32,9 @@ end
 
 get '/' do
 
-@articles = db_connection("SELECT * FROM articles;")
+@articles = db_connection do |conn|
+  conn.exec('SELECT * FROM articles;')
+    end
 @articles = @articles.to_a
 erb :home
 end
@@ -49,8 +53,35 @@ post '/new' do
 
     erb :new
   else
-    [params[:name],params[:new_article],params[:url], params[:description], params[:name]]
-
+    name = params["name"]
+    headline = params[:new_article]
+    url = params[:url]
+    description = params[:description]
+    insert = "INSERT INTO articles (name, headline, url, description) VALUES ($1, $2, $3, $4);"
+    articles_pg = db_connection do |conn|
+  conn.exec_params(insert, [name, headline, url, description])
+    end
     redirect '/'
   end
+end
+
+post '/comments/:id' do
+  name = params[:name]
+  content = params[:comments]
+  article_id = params[:id]
+  insert = "INSERT INTO comments (name, content, article_id, time_created) VALUES ($1, $2, $3, now());"
+    articles_pg = db_connection do |conn|
+  conn.exec_params(insert, [name, content, article_id])
+    end
+    redirect '/'
+  end
+
+get '/articles/:id/comments' do
+
+    @articles = db_connection do |conn|
+  conn.exec("SELECT articles.name, articles.id, articles.headline, articles.url, articles.description, comments.content,
+    comments.name AS commenter FROM articles JOIN comments ON comments.article_id = articles.id WHERE articles.id = #{params[:id]};")
+    end
+  @articles = @articles.to_a
+  erb :comments
 end
